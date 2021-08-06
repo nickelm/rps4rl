@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>RPs4RL - Realm Points for Real Life</title>
+    <meta name="title" content="RPs4RL" />
+    <meta name="author" content="Madgrim" />
+    <meta name="description" content="Realm Points tracker for real life" />
+    <meta name="viewport"content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <style>
+    html, body {
+      background: black;
+      color: white;
+      font-family: 'Verdana', sans-serif;
+    }
+    div.target {
+      color:  cyan;
+    }
+    div.reward {
+      color:  orange;
+    }
+    div.damage {
+      color:  orange;
+    }
+    div.kill {
+      color:  blanchedalmond;
+    }
+    div.cast {
+      color:  dodgerblue;
+    }
+    div.stats {
+      color:  white;
+    }
+    div.chatlog {
+      margin: 8px;
+      overflow-y:  auto;
+      height: calc(100vh - 134px);
+    }
+    </style>
+
+  </head>
+  <body>
+    <div class="sticky-top">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <span class="navbar-brand" href="index.html">RPs4RL</span>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+              <a class="nav-link" data-toggle="modal" href="#" data-target="#settingsDialog" onclick="updateModal();">Settings</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-toggle="modal" href="#" data-target="#aboutDialog">About</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      
+      <div class="bg-info">
+        <span id="rps"><b>Realm Points:</b> 0</span>
+        <span class="float-right" id="rank"><b>Realm Rank:</b> 1L1</span>
+      </div>
+
+      <span><b>Actions:</b></span>
+
+      <div class="btn-group" role="group" aria-label="toolbar">
+        <div class="btn-group" role="group">
+          <button id="actionDrop" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+            Attack
+          </button>
+          <div class="dropdown-menu" id="actionList"></div>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="stats();">Stats</button>
+        <button type="button" class="btn btn-primary" onclick="clearChat();">Clear</button>
+      </div>
+    </div>
+
+    <!-- Settings modal -->
+    <div class="modal fade text-dark" id="settingsDialog" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Settings</h5>
+            <button type="button" class="close" data-dismiss="modal" onclick="tempActions = null;">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body ">
+
+            <div>
+              <b>Manage:</b>
+              <button type="button" class="btn btn-primary" onclick="resetActions();">Reset actions</button>
+              <button type="button" class="btn btn-primary" onclick="resetRPs();">Reset RPs</button>
+              <button type="button" class="btn btn-primary" onclick="exportToClipboard();">Export2Clip</button>
+            </div>
+
+            <div>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">Import</span>
+                </div>
+                <input type="text" class="form-control" id="importString" onchange="importFromString();" placeholder="Exported string">
+                <div class="input-group-append">
+                  <button class="btn btn-outline-primary" type="button" onclick="importFromString();">&check;</button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">Set RPs</span>
+                </div>
+                <input type="text" class="form-control" id="newRPValue" onchange="setRPValue();" placeholder="New RPs (leave blank if unchanged)">
+                <div class="input-group-append">
+                  <button class="btn btn-outline-primary" type="button" onclick="setRPValue();">&check;</button>
+                </div>
+              </div>
+            </div>
+
+            <div><b>Actions:</b></div>
+
+            <div id="actionEditList"></div>
+            <div class="input-group">
+              <input type="text" class="form-control" id="newAction" onchange="addAction();" placeholder="Action to add...">
+              <input type="text" class="form-control" id="newValue" onchange="addAction();" placeholder="RP value">
+              <div class="input-group-append">
+                <button class="btn btn-outline-primary" type="button" onclick="addAction();">&check;</button>
+              </div>
+            </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="tempActions = null;">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveSettings();" data-dismiss="modal">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- About modal -->
+    <div class="modal fade text-dark" id="aboutDialog" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">About RPs4RL</h5>
+            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+          </div>
+          <div class="modal-body">
+            <div class=".lead"><b>Realm Points for Real Life (RPs4RL)</b> is a gamification utility created by <i>Madgrim</i> (<tt>BelomarFleetfoot#0319</tt>).</div>
+
+            <div class="text-muted">Version 1.0 - August 6, 2021.</div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chatlog" id="chatlog"></div>
+
+    <script>
+
+      /*  TODO:
+          [ ] Set RP value
+          [X] Realm dinging
+          [X] Realm levels display
+          [X] Action list editing
+          [X] Action list importing and exporting
+       */
+
+      // Standard actions
+      var defaultActionList = [
+        [ 'Laundry', 1000],
+        [ 'Dinner', 500],
+        [ 'Gardening', 5000],
+        [ 'Workday', 10000],
+      ];
+      var realmLevels = [0, 25, 125, 350, 750, 1375, 2275, 3500, 5100, 7125, 9625, 12650, 16250, 20475, 25375, 31000, 37400, 44625, 52725, 61750, 71750, 82775, 94875, 108100, 122500, 138125, 155025, 173250, 192850, 213875, 236375, 260400, 286000, 313225, 342125, 372750, 405150, 439375, 475475, 513500, 553500, 595525, 639625, 685850, 734250, 784875, 837775, 893000, 950600, 1010625, 1073125, 1138150, 1205750, 1275975, 1348875, 1424500, 1502900, 1584125, 1668225, 1755250, 1845250, 1938275, 2034375, 2133600, 2236000, 2341625, 2450525, 2562750, 2678350, 2797375, 2919875, 3045900, 3175500, 3308725, 3445625, 3586250, 3730650, 3878875, 4030975, 4187000, 4347000, 4511025, 4679125, 4851350, 5027750, 5208375, 5393275, 5582500, 5776100, 5974125, 6176625, 6383650, 6595250, 6811475, 7032375, 7258000, 7488400, 7723625, 7963725, 8208750, 9111713, 10114001, 11226541, 12461460, 13832221, 15353765, 17042680, 18917374, 20998286, 23308097, 25871988, 28717906, 31876876, 35383333, 39275499, 43595804, 48391343, 53714390, 59622973, 66181501, 73461466, 81542227, 90511872, 100468178, 111519678, 123786843, 137403395, 152517769, 169294723, 187917143];
+
+      // Keeping track of data
+      const startTime = Date.now();
+
+      // Initialize local storage
+      var localStorage = window.localStorage;
+      if (!localStorage.getItem('rps')) {
+        populateStorage();
+      }
+
+      // Read values
+      var total_rps = parseInt(localStorage.getItem('rps'));
+      updateDisplay();
+      var session_rps = 0;
+      var session_kills = 0;
+      var base_rps = 0;
+
+      var tempActions = null;
+
+      // Load the interface state
+      updateActionList();
+
+      function updateActionList() {
+        $("#actionList").empty();
+        var actions = JSON.parse(localStorage.getItem('actions'));
+        for (var i = 0; i < actions.length; i++) {
+            var command = "attack('" + actions[i][0] + "', " + actions[i][1] + ");";
+            $("#actionList").append('<a class="dropdown-item" onclick="' + command + '">' + actions[i][0] + '</a>');
+        }
+      }
+
+      // From https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
+      function fallbackCopyTextToClipboard(text) {
+        var textArea = document.createElement("textarea");
+        textArea.value = text;
+        
+        // Avoid scrolling to bottom
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+          var successful = document.execCommand('copy');
+          var msg = successful ? 'successful' : 'unsuccessful';
+        }
+        catch (err) {
+          console.error('Fallback: Oops, unable to copy', err);
+        }
+        document.body.removeChild(textArea);
+      }
+
+      function copyTextToClipboard(text) {
+        if (!navigator.clipboard) {
+          fallbackCopyTextToClipboard(text);
+          return;
+        }
+        navigator.clipboard.writeText(text).then(function() {
+          console.log('Async: Copying to clipboard was successful!');
+        }, function(err) {
+          console.error('Async: Could not copy text: ', err);
+        });
+      }
+
+      function addAction() {
+        var currAction = $("#newAction").val();
+        var currValue = parseInt($("#newValue").val());
+        if (currValue == 0 || isNaN(currValue)) currValue = 1000;
+        tempActions.push([currAction, currValue]);
+        updateModal();
+      }
+
+      function updateModal() {
+        $("#importString").val("");
+        $("#newRPValue").val("");
+        $("#newAction").val("");
+        $("#newValue").val("");
+        $("#actionEditList").empty();
+        if (tempActions == null) tempActions = JSON.parse(localStorage.getItem('actions'));
+        for (var i = 0; i < tempActions.length; i++) {
+          var html = '<div class="input-group"><input type="text" class="form-control" placeholder="Action" value="' + tempActions[i][0]
+            + '"><input type="text" class="form-control" placeholder="RPs" value="' + tempActions[i][1]
+            + '"><div class="input-group-append"><button class="btn btn-outline-secondary" onclick="deleteTempAction(' + i
+            + ')" type="button">&times;</button></div>';
+           $("#actionEditList").append(html);
+        }
+      }
+
+      function exportToClipboard() {
+        copyTextToClipboard(JSON.stringify(tempActions));
+      }
+
+      function deleteTempAction(index) {
+        tempActions.splice(index, 1);
+        updateModal();
+      }
+
+      function resetRPs() {
+        localStorage.setItem('rps', 0);
+        total_rps = 0;
+        session_rps = 0;
+        session_kills = 0;
+        base_rps = 0;
+        updateDisplay();
+      }
+
+      function resetActions() {
+        // Make a deep copy of the original action list
+        tempActions = JSON.parse(JSON.stringify(defaultActionList));
+        updateModal();        
+      }
+
+      function populateStorage() {
+        localStorage.setItem('rps', 0);
+        localStorage.setItem('actions', JSON.stringify(defaultActionList));
+      }
+
+      function importFromString() {
+
+        // Is there a string to import
+        if ($("#importString").val() == "") return;
+
+        // Get the string
+        importString = $('#importString').val();
+
+        // If this is valid JSON, then implement it
+        try {
+          tempActions = JSON.parse(importString);
+        }
+        catch (e) {
+          return;
+        }
+
+        // Update the interface
+        updateModal();
+      }
+
+      function setRPValue() {
+
+        // Is there a value?
+        if ($("#newRPValue").val() == "") return;
+
+        // Get the value
+        newRPValue = parseInt($('#newRPValue').val());
+
+        // Store the values
+        localStorage.setItem('rps', newRPValue);
+        total_rps = newRPValue;
+        updateDisplay();
+      }
+
+      function saveSettings() {
+
+        // Parse the actions
+        var newActionList = [];
+        $("#actionEditList > div").each(function (index) {
+          var currAction = $(this).children().get(0).value;
+          var currValue = parseInt($(this).children().get(1).value);
+          if (currValue == 0 || isNaN(currValue)) currValue = 1000;
+          newActionList.push([currAction, currValue]);
+        });
+
+        // Save the actions into local storage
+        localStorage.setItem('actions', JSON.stringify(newActionList));
+
+        // Now clear the temporary actions
+        tempActions = null;
+
+        // Update the interface
+        updateActionList();
+      }
+
+      var addMessage = function (style, msg) {
+        $("#chatlog").append("<div class='" + style + "'>" + msg + "</div>");
+      }
+
+      var clearChat = function () {
+        $("#chatlog").empty();
+        session_rps = 0;
+        session_kills = 0;
+        base_rps = 0;
+      }
+
+      var scrollToBottom = function () {
+         var div = document.getElementById("chatlog");
+         div.scrollTop = div.scrollHeight - div.clientHeight;
+      }
+
+      function getRealmRank(rps) {
+        var ndx = 0;
+        while (rps > realmLevels[ndx]) {
+          ndx += 1;
+        }
+        return ndx;
+      }
+
+      function updateDisplay() {
+
+        // Update the realm points
+        $("#rps").html("<b>Realm Points:</b> " + total_rps);
+
+        // Now figure out the realm rank
+        var points = getRealmRank(total_rps);
+        console.log(points);
+        var rank = Math.floor(points / 10) + 1;
+        var level = points % 10;
+
+        // Update the display
+        $("#rank").html("<b>Realm Rank:</b> " + rank + "L" + level);
+      }
+
+      var stats = function () {
+
+        var diff = Date.now() - startTime;
+        var diffSeconds = diff / 1000;
+        while (diffSeconds >= 60) diffSeconds -= 60;
+        var diffMinutes = diffSeconds / 60;
+        while (diffMinutes >= 60) diffMinutes -= 60;
+        var diffHours = diffMinutes / 60;
+
+        addMessage("stats", "Your statistics for this session:");
+        addMessage("stats", "Total RP: " + session_rps);
+        addMessage("stats", "RP earned from kills: " + base_rps);
+        addMessage("stats", "Kills that have earned RP: " + session_kills);
+        addMessage("stats", "Online time: " + Math.floor(diffHours) + " hours, " + Math.floor(diffMinutes) + " minutes, " + Math.floor(diffSeconds) + " seconds.");
+        addMessage("stats", "RP/hour: " + (session_rps / diffHours).toFixed(2));
+        scrollToBottom();
+      }
+
+      var attack = function (target, maxrps) {
+        addMessage("target", "You target " + target + ".");
+        addMessage("target", "You examine " + target + ". They are a member of an enemy realm!");
+        addMessage("cast", "You begin casting a spell!");
+
+        var dmg = Math.random() * 1000 + 200;
+        var crit = Math.random() < 0.25 ? Math.random() * 0.5 * dmg : 0.0;
+        var reduction = (Math.random() * 0.05 + 0.21) * dmg;
+        dmg = dmg - reduction;
+        addMessage("damage", "You hit " + target + " for " + Math.round(dmg) + "(-" + Math.round(reduction) + ") damage!");
+        if (crit > 0) {
+          addMessage("damage", "You critical hit for another " + Math.round(crit) + " damage!");
+        }
+
+        addMessage("kill", "You have killed " + target + "!");
+
+        var rps = (Math.random() * (0.20 - 0.10) + 1) * maxrps;
+        var buffrps = rps * 0.65;
+        var outpostrps = rps * 0.15;
+        var artirps = rps * 0.05;
+        var poprps = rps * 0.25;
+        var bps = 0.05 * rps;
+        var bonusbps = bps * 0.10;
+        addMessage("reward", "You earn " + Math.ceil(rps) + " realm points.");
+        addMessage("reward", "You earn " + Math.ceil(buffrps) + " extra realm points from buffs.");
+        addMessage("reward", "You earn " + Math.ceil(outpostrps) + " extra realm points for realm outpost ownership.");
+        addMessage("reward", "You earn " + Math.ceil(artirps) + " extra realm points from your artifact.");
+        addMessage("reward", "You earn " + Math.ceil(poprps) + " extra realm points because your realm is outnumbered in the frontiers.");
+        addMessage("reward", "You get " + Math.ceil(bps) + " bounty points!");
+        addMessage("reward", "You earn " + Math.ceil(bonusbps) + " bonus bounty points.");
+
+        // Determine whether we ding
+        var oldRank = getRealmRank(total_rps);
+
+        // Update data
+        var sum_rps = Math.ceil(rps) + Math.ceil(buffrps) + Math.ceil(outpostrps) + Math.ceil(artirps) + Math.ceil(poprps); 
+        total_rps += sum_rps;
+        localStorage.setItem("rps", total_rps);
+        session_rps += sum_rps;
+        base_rps += Math.ceil(rps);
+        session_kills += 1;
+
+        // Did it change?
+        var newRank = getRealmRank(total_rps);
+        while (oldRank < newRank) {          
+          oldRank++;
+          var rank = Math.floor(oldRank / 10) + 1;
+          var level = oldRank % 10;
+          var meritpts = Math.random() * 300 + 100;
+          addMessage("stats", "You have gained a realm level!");
+          addMessage("reward", "You have earned " + Math.ceil(meritpts) + " merit points for your guild!");
+          addMessage("stats", "You are now realm rank " + rank + " level " + level + ".");
+        }
+
+        // Update RPs
+        updateDisplay();
+
+        // Scroll to bottom of div
+        scrollToBottom();
+      }
+
+    </script>
+  </body>
+</html>
